@@ -156,5 +156,6 @@
   "slotEmpty": "請先在下方為服務商配置 API Key。",
   "inUse": "使用中",
   "providerModelsCount": "模型 {count}",
-  "enterBaseUrl": "輸入 Base URL（例如 http://127.0.0.1:8188）"
+  "enterBaseUrl": "輸入 Base URL（例如 http://127.0.0.1:8188）",
+  "baseUrlNotConfigured": "未設定位址"
 }

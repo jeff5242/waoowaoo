@@ -30,7 +30,11 @@ export function ProviderRowShell({
   state,
   children,
 }: ProviderRowShellProps) {
+  const requiresApiKey = provider.requiresApiKey !== false
   const configured = !!provider.hasApiKey
+  const statusLabel = requiresApiKey
+    ? (configured ? t('keyConfigured') : t('notConfigured'))
+    : (configured ? (provider.baseUrl || t('keyConfigured')) : t('baseUrlNotConfigured'))
   return (
     <div className="border-b border-[var(--glass-stroke-base)] last:border-b-0">
       <div className="flex items-center gap-3 px-3 py-2.5">
@@ -46,18 +50,24 @@ export function ProviderRowShell({
           className="flex min-w-0 flex-1 items-center gap-3 py-1 text-left"
         >
           <span className="truncate text-[15px] font-bold text-[var(--glass-text-primary)]">{provider.name}</span>
-          <span className="hidden shrink-0 text-[12px] text-[var(--glass-text-tertiary)] sm:inline">
-            {configured ? t('keyConfigured') : t('notConfigured')}
+          <span className="hidden shrink-0 truncate text-[12px] text-[var(--glass-text-tertiary)] sm:inline">
+            {statusLabel}
           </span>
         </button>
         <div className="flex shrink-0 items-center gap-1.5">
           <button
             type="button"
-            onClick={() => { onExpandChange(true); state.startEditKey() }}
+            onClick={() => {
+              onExpandChange(true)
+              if (requiresApiKey) state.startEditKey()
+              else state.startEditBaseUrl()
+            }}
             className={`glass-btn-base px-2.5 py-1.5 text-[12px] ${configured ? 'glass-btn-soft' : 'glass-btn-primary'}`}
           >
             <AppIcon name={configured ? 'edit' : 'plus'} className="h-3.5 w-3.5" />
-            {configured ? t('configure') : t('configureApiKey')}
+            {requiresApiKey
+              ? (configured ? t('configure') : t('configureApiKey'))
+              : t('configureBaseUrl')}
           </button>
           {state.tutorial && (
             <button

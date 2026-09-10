@@ -156,5 +156,6 @@
   "slotEmpty": "Configure a provider API key below first.",
   "inUse": "In use",
   "providerModelsCount": "{count} models",
-  "enterBaseUrl": "Enter Base URL (e.g. http://127.0.0.1:8188)"
+  "enterBaseUrl": "Enter Base URL (e.g. http://127.0.0.1:8188)",
+  "baseUrlNotConfigured": "Base URL not set"
 }
