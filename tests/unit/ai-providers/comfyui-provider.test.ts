@@ -3,6 +3,7 @@ import { comfyUiAsyncTaskProvider } from '@/lib/ai-providers/comfyui/async-task'
 import { buildComfyUiAuthHeaders, resolveComfyUiBaseUrl } from '@/lib/ai-providers/comfyui/config'
 import { resolveComfyUiOptionSchema } from '@/lib/ai-providers/comfyui/models'
 import {
+  buildComfyUiImageToImageGraph,
   buildComfyUiTextToImageGraph,
   COMFYUI_TEXT_TO_IMAGE_MODEL_ID,
   resolveComfyUiImageDimensions,
@@ -16,6 +17,7 @@ const COMFYUI_ENV_KEYS = [
   'COMFYUI_CFG',
   'COMFYUI_SAMPLER_NAME',
   'COMFYUI_SCHEDULER',
+  'COMFYUI_IMG2IMG_DENOISE',
 ] as const
 
 afterEach(() => {
@@ -65,6 +67,44 @@ describe('buildComfyUiTextToImageGraph', () => {
   })
 })
 
+describe('buildComfyUiImageToImageGraph', () => {
+  it('routes the uploaded reference through LoadImage → ImageScale → VAEEncode with partial denoise', () => {
+    const graph = buildComfyUiImageToImageGraph({
+      prompt: 'same scene at night',
+      referenceImageName: 'waoo-ref-1.png',
+      aspectRatio: '16:9',
+    })
+    expect(graph.reference!.class_type).toBe('LoadImage')
+    expect(graph.reference!.inputs.image).toBe('waoo-ref-1.png')
+    expect(graph.scale!.class_type).toBe('ImageScale')
+    expect(graph.latent!.class_type).toBe('VAEEncode')
+    const denoise = graph.sampler!.inputs.denoise as number
+    expect(denoise).toBeGreaterThan(0)
+    expect(denoise).toBeLessThan(1)
+  })
+
+  it('honors the denoise env override and rejects out-of-range values', () => {
+    process.env.COMFYUI_IMG2IMG_DENOISE = '0.4'
+    const graph = buildComfyUiImageToImageGraph({ prompt: 'x', referenceImageName: 'r.png' })
+    expect(graph.sampler!.inputs.denoise).toBe(0.4)
+    process.env.COMFYUI_IMG2IMG_DENOISE = '1.5'
+    expect(() => buildComfyUiImageToImageGraph({ prompt: 'x', referenceImageName: 'r.png' }))
+      .toThrow('COMFYUI_ENV_INVALID')
+  })
+
+  it('requires a reference image name', () => {
+    expect(() => buildComfyUiImageToImageGraph({ prompt: 'x', referenceImageName: '  ' }))
+      .toThrow('COMFYUI_REFERENCE_IMAGE_NAME_REQUIRED')
+  })
+
+  it('keeps txt2img at full denoise with an empty latent', () => {
+    const graph = buildComfyUiTextToImageGraph({ prompt: 'x' })
+    expect(graph.latent!.class_type).toBe('EmptyLatentImage')
+    expect(graph.sampler!.inputs.denoise).toBe(1)
+    expect(graph.reference).toBeUndefined()
+  })
+})
+
 describe('comfyUiAsyncTaskProvider external ids', () => {
   it('round-trips COMFYUI:IMAGE:promptId', () => {
     const externalId = comfyUiAsyncTaskProvider.formatExternalId({ type: 'IMAGE', requestId: 'abc-123' })
@@ -84,14 +124,18 @@ describe('comfyUiAsyncTaskProvider external ids', () => {
 })
 
 describe('resolveComfyUiOptionSchema', () => {
-  it('accepts declared aspect ratios and resolutions and refuses reference images', () => {
+  it('accepts declared aspect ratios, resolutions, and at most one reference image', () => {
     const schema = resolveComfyUiOptionSchema('image', COMFYUI_TEXT_TO_IMAGE_MODEL_ID)
     expect(schema.validators.aspectRatio!('16:9').ok).toBe(true)
     expect(schema.validators.aspectRatio!('17:5').ok).toBe(false)
     expect(schema.validators.resolution!('1K').ok).toBe(true)
     expect(schema.validators.resolution!('4K').ok).toBe(false)
     expect(schema.validators.referenceImages!([]).ok).toBe(true)
-    expect(schema.validators.referenceImages!(['https://example.com/ref.png']).ok).toBe(false)
+    expect(schema.validators.referenceImages!(['data:image/png;base64,AA==']).ok).toBe(true)
+    expect(schema.validators.referenceImages!([
+      'data:image/png;base64,AA==',
+      'data:image/png;base64,BB==',
+    ]).ok).toBe(false)
   })
 
   it('refuses other modalities and model ids', () => {

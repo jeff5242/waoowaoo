@@ -29,6 +29,9 @@ const DEFAULT_CFG = 6.5
 const DEFAULT_SAMPLER_NAME = 'euler'
 const DEFAULT_SCHEDULER = 'normal'
 const DEFAULT_NEGATIVE_PROMPT = 'text, watermark, logo, low quality, blurry, deformed'
+// img2img keeps enough of the reference to guide composition while still
+// letting the prompt reshape it; 1.0 would ignore the reference entirely.
+const DEFAULT_IMG2IMG_DENOISE = 0.65
 const LATENT_DIMENSION_STEP = 8
 
 export interface ComfyUiWorkflowGraph {
@@ -84,10 +87,16 @@ export function resolveComfyUiImageDimensions(input: {
   return { width, height }
 }
 
-export function buildComfyUiTextToImageGraph(input: {
+function buildComfyUiImageGraph(input: {
   prompt: string
   aspectRatio?: string
   resolution?: string
+  /**
+   * Name of an image already uploaded to the ComfyUI input directory.
+   * When present the graph runs img2img (LoadImage → ImageScale →
+   * VAEEncode, denoise < 1) instead of txt2img (EmptyLatentImage).
+   */
+  referenceImageName?: string
 }): ComfyUiWorkflowGraph {
   const { width, height } = resolveComfyUiImageDimensions(input)
   const checkpointName = readEnvString('COMFYUI_CHECKPOINT_NAME', DEFAULT_CHECKPOINT_NAME)
@@ -96,6 +105,40 @@ export function buildComfyUiTextToImageGraph(input: {
   const cfg = readEnvNumber('COMFYUI_CFG', DEFAULT_CFG)
   const samplerName = readEnvString('COMFYUI_SAMPLER_NAME', DEFAULT_SAMPLER_NAME)
   const scheduler = readEnvString('COMFYUI_SCHEDULER', DEFAULT_SCHEDULER)
+  const denoise = input.referenceImageName
+    ? readEnvNumber('COMFYUI_IMG2IMG_DENOISE', DEFAULT_IMG2IMG_DENOISE)
+    : 1
+  if (denoise <= 0 || denoise > 1) {
+    throw new Error('COMFYUI_ENV_INVALID: COMFYUI_IMG2IMG_DENOISE must be in (0, 1]')
+  }
+
+  const latentSource: ComfyUiWorkflowGraph = input.referenceImageName
+    ? {
+      reference: {
+        class_type: 'LoadImage',
+        inputs: { image: input.referenceImageName },
+      },
+      scale: {
+        class_type: 'ImageScale',
+        inputs: {
+          image: ['reference', 0],
+          upscale_method: 'lanczos',
+          width,
+          height,
+          crop: 'center',
+        },
+      },
+      latent: {
+        class_type: 'VAEEncode',
+        inputs: { pixels: ['scale', 0], vae: ['checkpoint', 2] },
+      },
+    }
+    : {
+      latent: {
+        class_type: 'EmptyLatentImage',
+        inputs: { width, height, batch_size: 1 },
+      },
+    }
 
   return {
     checkpoint: {
@@ -110,10 +153,7 @@ export function buildComfyUiTextToImageGraph(input: {
       class_type: 'CLIPTextEncode',
       inputs: { text: negativePrompt, clip: ['checkpoint', 1] },
     },
-    latent: {
-      class_type: 'EmptyLatentImage',
-      inputs: { width, height, batch_size: 1 },
-    },
+    ...latentSource,
     sampler: {
       class_type: 'KSampler',
       inputs: {
@@ -122,7 +162,7 @@ export function buildComfyUiTextToImageGraph(input: {
         cfg,
         sampler_name: samplerName,
         scheduler,
-        denoise: 1,
+        denoise,
         model: ['checkpoint', 0],
         positive: ['positive', 0],
         negative: ['negative', 0],
@@ -138,4 +178,24 @@ export function buildComfyUiTextToImageGraph(input: {
       inputs: { images: ['decode', 0], filename_prefix: 'waoowaoo' },
     },
   }
+}
+
+export function buildComfyUiTextToImageGraph(input: {
+  prompt: string
+  aspectRatio?: string
+  resolution?: string
+}): ComfyUiWorkflowGraph {
+  return buildComfyUiImageGraph(input)
+}
+
+export function buildComfyUiImageToImageGraph(input: {
+  prompt: string
+  referenceImageName: string
+  aspectRatio?: string
+  resolution?: string
+}): ComfyUiWorkflowGraph {
+  if (!input.referenceImageName.trim()) {
+    throw new Error('COMFYUI_REFERENCE_IMAGE_NAME_REQUIRED')
+  }
+  return buildComfyUiImageGraph(input)
 }

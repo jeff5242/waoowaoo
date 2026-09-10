@@ -17,7 +17,12 @@ export const COMFYUI_BUILTIN_CAPABILITY_CATALOG_ENTRIES = [
     modelType: 'image',
     provider: 'comfyui',
     modelId: COMFYUI_TEXT_TO_IMAGE_MODEL_ID,
-    capabilities: { image: { resolutionOptions: [...COMFYUI_IMAGE_RESOLUTIONS] } },
+    capabilities: {
+      image: {
+        resolutionOptions: [...COMFYUI_IMAGE_RESOLUTIONS],
+        maxReferenceImages: 1,
+      },
+    },
   },
 ] as const
 
@@ -54,7 +59,7 @@ export function resolveComfyUiOptionSchema(modality: MediaModality, modelId: str
       aspectRatio: enumValidator(COMFYUI_IMAGE_ASPECT_RATIOS),
       resolution: enumValidator(COMFYUI_IMAGE_RESOLUTIONS),
       outputFormat: enumValidator(['png']),
-      referenceImages: stringArrayValidator({ maxLength: 0 }),
+      referenceImages: stringArrayValidator({ maxLength: 1 }),
     },
     normalize: (options) => ({
       ...options,
