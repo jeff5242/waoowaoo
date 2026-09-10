@@ -26,6 +26,7 @@ export function ApiConfigTabContainer() {
     saveStatus,
     saveError,
     updateProviderApiKey,
+    updateProviderBaseUrl,
     reorderProviders,
     deleteProvider,
     selectSlotModel,
@@ -122,6 +123,7 @@ export function ApiConfigTabContainer() {
             defaultModels={defaultModels}
             getModelsForProvider={getModelsForProvider}
             onUpdateApiKey={updateProviderApiKey}
+            onUpdateBaseUrl={updateProviderBaseUrl}
             onReorderProviders={reorderProviders}
             onDeleteModel={deleteModel}
             onUpdateModel={updateModel}

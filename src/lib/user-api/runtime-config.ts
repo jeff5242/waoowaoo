@@ -15,7 +15,7 @@ import { isApiConfigCatalogProviderId } from '@/lib/ai-registry/api-config-catal
 import { parseModelKeyStrict } from '@/lib/ai-registry/selection'
 import type { AiLlmProviderConfig } from '@/lib/ai-registry/types'
 import { getDeploymentConfig, isPlatformProviderCredentialMode } from '@/lib/deployment/config'
-import { resolveAiProviderManifest } from '@/lib/ai-providers/manifests'
+import { providerRequiresApiKey, resolveAiProviderManifest } from '@/lib/ai-providers/manifests'
 import { getPlatformEnabledModels } from '@/lib/platform-models/catalog'
 import type { UnifiedModelType } from '@/lib/ai-registry/types'
 import { isUnifiedModelType } from '@/lib/user-api/api-config-shared'
@@ -77,7 +77,7 @@ function resolvePlatformProviderEnv(providerId: string): PlatformProviderEnv {
   }
 
   const apiKey = readEnvString(`${entry.envPrefix}_API_KEY`)
-  if (!apiKey) {
+  if (!apiKey && providerRequiresApiKey(providerId)) {
     throw new Error(`PLATFORM_PROVIDER_API_KEY_MISSING: ${providerId}`)
   }
 
@@ -254,6 +254,14 @@ export async function getProviderConfig(userId: string, providerId: string): Pro
   const provider = pickProviderStrict(parseStoredProviders(pref?.customProviders), providerId)
 
   if (!provider.apiKey) {
+    if (!providerRequiresApiKey(provider.id)) {
+      return {
+        id: provider.id,
+        name: provider.name,
+        apiKey: '',
+        baseUrl: normalizeProviderRuntimeBaseUrl(provider.id, provider.baseUrl),
+      }
+    }
     throw new AppError('PROVIDER_AUTH_INVALID', 'Provider API key is missing', {
       provider: provider.id,
     })

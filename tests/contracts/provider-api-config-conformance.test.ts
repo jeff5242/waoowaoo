@@ -44,7 +44,7 @@ describe('API config provider registry conformance', () => {
         .filter((provider) => provider.featured)
         .map((provider) => provider.id)
         .sort())
-        .toEqual(['ark', 'openrouter'])
+        .toEqual(['ark', 'comfyui', 'openrouter'])
     }
 
     for (const provider of catalogProviders) {

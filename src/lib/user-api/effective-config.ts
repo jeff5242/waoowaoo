@@ -1,5 +1,6 @@
 import { ApiError } from '@/lib/api-errors'
 import type { StoredModel, StoredProvider } from '@/lib/user-api/api-config-types'
+import { providerRequiresApiKey } from '@/lib/ai-providers/manifests'
 import { resolveProviderByIdOrKey } from '@/lib/user-api/api-config-provider-normalization'
 import { isProductionModelSupported, MEDIA_MODEL_TYPES, resolveSingleModelSelection } from '@/lib/ai-registry/media-model-selection'
 import { resolveBuiltinCapabilitiesByModelKey } from '@/lib/ai-registry/capabilities-catalog'
@@ -28,6 +29,7 @@ export function assertSingleMediaModelSelections(models: readonly StoredModel[])
 }
 
 export function hasStoredProviderCredential(provider: StoredProvider): boolean {
+  if (!providerRequiresApiKey(provider.id)) return true
   return typeof provider.apiKey === 'string' && provider.apiKey.trim().length > 0
 }
 

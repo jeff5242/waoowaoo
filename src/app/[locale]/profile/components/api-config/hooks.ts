@@ -42,6 +42,7 @@ interface UseProvidersReturn {
     saveError: ApiConfigSaveError | null
     flushConfig: () => Promise<void>
     updateProviderApiKey: (providerId: string, apiKey: string) => void
+    updateProviderBaseUrl: (providerId: string, baseUrl: string) => void
     reorderProviders: (activeProviderId: string, overProviderId: string) => void
     deleteProvider: (providerId: string) => void
     selectSlotModel: (type: UnifiedModelType, modelKey: string) => void
@@ -164,6 +165,24 @@ export function useProviders(): UseProvidersReturn {
             })
             latestProvidersRef.current = settled
             setProviders(settled)
+        })
+    }, [performSave])
+
+    const updateProviderBaseUrl = useCallback((providerId: string, baseUrl: string) => {
+        const previousProvider = latestProvidersRef.current.find((provider) => provider.id === providerId)
+        if (!previousProvider) return
+        const next = latestProvidersRef.current.map((provider) => (
+            provider.id === providerId ? { ...provider, baseUrl } : provider
+        ))
+        latestProvidersRef.current = next
+        setProviders(next)
+        void performSave().then((saved) => {
+            if (saved) return
+            const reverted = latestProvidersRef.current.map((provider) => (
+                provider.id === providerId ? previousProvider : provider
+            ))
+            latestProvidersRef.current = reverted
+            setProviders(reverted)
         })
     }, [performSave])
 
@@ -340,6 +359,7 @@ export function useProviders(): UseProvidersReturn {
         saveError,
         flushConfig,
         updateProviderApiKey,
+        updateProviderBaseUrl,
         reorderProviders,
         deleteProvider,
         selectSlotModel,

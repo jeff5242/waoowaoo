@@ -140,3 +140,14 @@ export function resolveAiProviderManifest(providerId: string): AiProviderManifes
 export function isFeaturedApiConfigProvider(providerKey: string): boolean {
   return editionAi.apiConfig.featuredProviderKeys.includes(providerKey)
 }
+
+/**
+ * Whether a provider's credential readiness requires a non-empty API key.
+ * Only a manifest that explicitly declares `apiConfig.requiresApiKey: false`
+ * opts out; unknown providers stay strict.
+ */
+export function providerRequiresApiKey(providerId: string): boolean {
+  const providerKey = providerId.trim().toLowerCase().split(':', 1)[0]
+  const manifest = AI_PROVIDER_MANIFESTS.find((candidate) => candidate.providerKey === providerKey)
+  return manifest?.apiConfig?.requiresApiKey !== false
+}

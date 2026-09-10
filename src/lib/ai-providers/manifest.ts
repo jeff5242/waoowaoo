@@ -41,6 +41,12 @@ export interface AiProviderManifest {
     readonly visibility: 'visible' | 'hidden'
     readonly name: string
     readonly baseUrl?: string
+    /**
+     * Providers that authenticate by reachability (e.g. a self-hosted ComfyUI
+     * instance addressed by base URL) declare `false`; credential readiness and
+     * runtime config then accept an empty API key. Default is `true`.
+     */
+    readonly requiresApiKey?: boolean
   }
   readonly platformCredentials?: {
     readonly envPrefix: string

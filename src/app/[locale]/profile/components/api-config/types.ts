@@ -16,6 +16,7 @@ export interface ApiConfigCatalogProvider {
     baseUrl?: string
     featured: boolean
     connectionTest: boolean
+    requiresApiKey: boolean
     modelTypes: UnifiedModelType[]
 }
 
@@ -41,6 +42,7 @@ export interface Provider {
     hasApiKey?: boolean
     featured?: boolean
     connectionTest?: boolean
+    requiresApiKey?: boolean
     modelTypes?: UnifiedModelType[]
 }
 
