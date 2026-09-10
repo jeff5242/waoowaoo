@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { comfyUiAsyncTaskProvider } from '@/lib/ai-providers/comfyui/async-task'
-import { resolveComfyUiBaseUrl } from '@/lib/ai-providers/comfyui/config'
+import { buildComfyUiAuthHeaders, resolveComfyUiBaseUrl } from '@/lib/ai-providers/comfyui/config'
 import { resolveComfyUiOptionSchema } from '@/lib/ai-providers/comfyui/models'
 import {
   buildComfyUiTextToImageGraph,
@@ -97,6 +97,23 @@ describe('resolveComfyUiOptionSchema', () => {
   it('refuses other modalities and model ids', () => {
     expect(() => resolveComfyUiOptionSchema('video', COMFYUI_TEXT_TO_IMAGE_MODEL_ID)).toThrow('COMFYUI_MODEL_UNSUPPORTED')
     expect(() => resolveComfyUiOptionSchema('image', 'unknown-model')).toThrow('COMFYUI_MODEL_UNSUPPORTED')
+  })
+})
+
+describe('buildComfyUiAuthHeaders', () => {
+  it('sends no Authorization header without a key', () => {
+    expect(buildComfyUiAuthHeaders()).toEqual({})
+    expect(buildComfyUiAuthHeaders('   ')).toEqual({})
+  })
+
+  it('maps user:password onto HTTP Basic per RFC 7617', () => {
+    expect(buildComfyUiAuthHeaders('alice:secret')).toEqual({
+      Authorization: `Basic ${Buffer.from('alice:secret', 'utf8').toString('base64')}`,
+    })
+  })
+
+  it('sends any other value as a Bearer token', () => {
+    expect(buildComfyUiAuthHeaders('my-token')).toEqual({ Authorization: 'Bearer my-token' })
   })
 })
 

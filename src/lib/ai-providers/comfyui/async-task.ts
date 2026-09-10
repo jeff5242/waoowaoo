@@ -4,7 +4,7 @@ import type {
   ParsedAsyncExternalId,
 } from '@/lib/ai-providers/async-task-types'
 import { normalizeAsyncPollResult } from '@/lib/ai-providers/async-task-types'
-import { resolveComfyUiBaseUrl } from './config'
+import { buildComfyUiAuthHeaders, resolveComfyUiBaseUrl } from './config'
 import { cancelComfyUiTask, queryComfyUiStatus } from './queue'
 
 function parseComfyUiExternalId(externalId: string): ParsedAsyncExternalId {
@@ -24,11 +24,14 @@ function formatComfyUiExternalId(input: FormatAsyncExternalIdInput): string {
   return `COMFYUI:${input.type}:${input.requestId}`
 }
 
-async function resolveComfyUiPollBaseUrl(
+async function resolveComfyUiPollConnection(
   context: Parameters<AsyncTaskProviderRegistration['poll']>[0]['context'],
-): Promise<string> {
-  const { baseUrl } = await context.getProviderConfig(context.userId, 'comfyui')
-  return resolveComfyUiBaseUrl(baseUrl)
+): Promise<{ baseUrl: string; authHeaders: Record<string, string> }> {
+  const { baseUrl, apiKey } = await context.getProviderConfig(context.userId, 'comfyui')
+  return {
+    baseUrl: resolveComfyUiBaseUrl(baseUrl),
+    authHeaders: buildComfyUiAuthHeaders(apiKey),
+  }
 }
 
 export const comfyUiAsyncTaskProvider: AsyncTaskProviderRegistration = {
@@ -38,8 +41,8 @@ export const comfyUiAsyncTaskProvider: AsyncTaskProviderRegistration = {
   parseExternalId: parseComfyUiExternalId,
   formatExternalId: formatComfyUiExternalId,
   poll: async ({ parsed, context }) => {
-    const baseUrl = await resolveComfyUiPollBaseUrl(context)
-    const result = await queryComfyUiStatus(baseUrl, parsed.requestId)
+    const { baseUrl, authHeaders } = await resolveComfyUiPollConnection(context)
+    const result = await queryComfyUiStatus(baseUrl, parsed.requestId, authHeaders)
     if (result.failed) {
       if (!result.failure) {
         throw new Error('COMFYUI_FAILED_STATUS_CLASSIFICATION_REQUIRED')
@@ -62,7 +65,7 @@ export const comfyUiAsyncTaskProvider: AsyncTaskProviderRegistration = {
     })
   },
   cancel: async ({ parsed, context }) => {
-    const baseUrl = await resolveComfyUiPollBaseUrl(context)
-    await cancelComfyUiTask(baseUrl, parsed.requestId)
+    const { baseUrl, authHeaders } = await resolveComfyUiPollConnection(context)
+    await cancelComfyUiTask(baseUrl, parsed.requestId, authHeaders)
   },
 }

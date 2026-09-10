@@ -13,15 +13,17 @@ interface ProviderBaseFieldsProps {
 
 export function ProviderBaseFields({ provider, t, state, showBaseUrlField }: ProviderBaseFieldsProps) {
   const requiresApiKey = provider.requiresApiKey !== false
-  // A provider without an API key requirement is configured entirely by its
-  // base URL, so the URL row always shows for it.
+  // A provider without an API key requirement is configured by its base URL;
+  // its key field stays visible but optional, for reverse-proxy credentials.
+  // `hasApiKey` means readiness there, so key presence reads the literal flag.
+  const hasLiteralKey = requiresApiKey ? !!provider.hasApiKey : provider.hasStoredApiKey === true
   const showBaseUrl = showBaseUrlField || !requiresApiKey
   return (
     <div className="space-y-2 px-4 pt-3">
-      {requiresApiKey ? (
+      {(
         <div className="glass-surface-soft flex items-center gap-3 rounded-xl px-3 py-2">
           <span className="shrink-0 text-xs font-medium text-[var(--glass-text-secondary)]">
-            {t('apiKeyLabel')}
+            {requiresApiKey ? t('apiKeyLabel') : t('apiKeyOptionalLabel')}
           </span>
           {state.isEditing ? (
             <form
@@ -48,16 +50,16 @@ export function ProviderBaseFields({ provider, t, state, showBaseUrlField }: Pro
           ) : (
             <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
               <span className="text-xs text-[var(--glass-text-tertiary)]">
-                {provider.hasApiKey ? t('keyConfigured') : t('notConfigured')}
+                {hasLiteralKey ? t('keyConfigured') : t('notConfigured')}
               </span>
               <button type="button" onClick={state.startEditKey} className="glass-btn-base glass-btn-soft px-2.5 py-1.5 text-xs">
-                <AppIcon name={provider.hasApiKey ? 'edit' : 'plus'} className="h-3.5 w-3.5" />
-                {provider.hasApiKey ? t('configure') : t('configureApiKey')}
+                <AppIcon name={hasLiteralKey ? 'edit' : 'plus'} className="h-3.5 w-3.5" />
+                {hasLiteralKey ? t('configure') : t('configureApiKey')}
               </button>
             </div>
           )}
         </div>
-      ) : null}
+      )}
       {showBaseUrl ? (
         <div className="glass-surface-soft flex items-center gap-3 rounded-xl px-3 py-2">
           <span className="shrink-0 text-xs font-medium text-[var(--glass-text-secondary)]">

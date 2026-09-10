@@ -58,6 +58,7 @@ export async function submitComfyUiPrompt(input: {
   readonly baseUrl: string
   readonly graph: ComfyUiWorkflowGraph
   readonly scope: string
+  readonly authHeaders?: Readonly<Record<string, string>>
 }): Promise<string> {
   let response: Response
   try {
@@ -67,7 +68,7 @@ export async function submitComfyUiPrompt(input: {
       phase: 'submit',
       options: {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(input.authHeaders ?? {}) },
         body: JSON.stringify({ prompt: input.graph }),
         operation: EXTERNAL_OPERATION.PROVIDER_SUBMIT,
         cache: 'no-store',

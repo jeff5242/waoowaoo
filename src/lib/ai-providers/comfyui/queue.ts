@@ -85,10 +85,16 @@ function readHistoryFailureMessage(historyEntry: Record<string, unknown>): strin
   return readString(status?.status_str) || 'ComfyUI execution failed'
 }
 
-async function fetchComfyUiJson(url: string, phase: 'poll' | 'result'): Promise<unknown> {
+type ComfyUiAuthHeaders = Readonly<Record<string, string>>
+
+async function fetchComfyUiJson(
+  url: string,
+  phase: 'poll' | 'result',
+  authHeaders: ComfyUiAuthHeaders,
+): Promise<unknown> {
   const response = await fetchWithProviderProxy(url, {
     method: 'GET',
-    headers: { Accept: 'application/json' },
+    headers: { Accept: 'application/json', ...authHeaders },
   })
   if (!response.ok) {
     throw await captureProviderHttpFailure({ response, provider: 'comfyui', phase })
@@ -99,6 +105,7 @@ async function fetchComfyUiJson(url: string, phase: 'poll' | 'result'): Promise<
 async function downloadComfyUiOutputImage(
   baseUrl: string,
   image: ComfyUiOutputImageRef,
+  authHeaders: ComfyUiAuthHeaders,
 ): Promise<string> {
   const query = new URLSearchParams({
     filename: image.filename,
@@ -106,7 +113,7 @@ async function downloadComfyUiOutputImage(
     type: image.type,
   })
   const viewUrl = buildComfyUiUrl(baseUrl, `view?${query.toString()}`)
-  const response = await fetchWithProviderProxy(viewUrl, { method: 'GET' })
+  const response = await fetchWithProviderProxy(viewUrl, { method: 'GET', headers: { ...authHeaders } })
   if (!response.ok) {
     throw await captureProviderHttpFailure({ response, provider: 'comfyui', phase: 'result' })
   }
@@ -129,10 +136,15 @@ function readQueuePhase(queuePayload: unknown, promptId: string): 'QUEUED' | 'RU
   return null
 }
 
-export async function queryComfyUiStatus(baseUrl: string, promptId: string): Promise<ComfyUiQueueStatus> {
+export async function queryComfyUiStatus(
+  baseUrl: string,
+  promptId: string,
+  authHeaders: ComfyUiAuthHeaders = {},
+): Promise<ComfyUiQueueStatus> {
   const historyPayload = await fetchComfyUiJson(
     buildComfyUiUrl(baseUrl, `history/${encodeURIComponent(promptId)}`),
     'poll',
+    authHeaders,
   )
   const historyEntry = asRecord(asRecord(historyPayload)?.[promptId])
 
@@ -174,7 +186,7 @@ export async function queryComfyUiStatus(baseUrl: string, promptId: string): Pro
       message: 'ComfyUI task completed, downloading output',
       details: { promptId, filename: image.filename },
     })
-    const resultDataUrl = await downloadComfyUiOutputImage(baseUrl, image)
+    const resultDataUrl = await downloadComfyUiOutputImage(baseUrl, image, authHeaders)
     return {
       status: 'COMPLETED',
       completed: true,
@@ -183,7 +195,7 @@ export async function queryComfyUiStatus(baseUrl: string, promptId: string): Pro
     }
   }
 
-  const queuePayload = await fetchComfyUiJson(buildComfyUiUrl(baseUrl, 'queue'), 'poll')
+  const queuePayload = await fetchComfyUiJson(buildComfyUiUrl(baseUrl, 'queue'), 'poll', authHeaders)
   const phase = readQueuePhase(queuePayload, promptId)
   comfyUiLogger.debug({
     action: 'comfyui.queue.status',
@@ -207,8 +219,12 @@ export async function queryComfyUiStatus(baseUrl: string, promptId: string): Pro
  * mean the job is already terminal or unknown and are tolerated as a no-op;
  * only transport/5xx failures throw.
  */
-export async function cancelComfyUiTask(baseUrl: string, promptId: string): Promise<void> {
-  const queuePayload = await fetchComfyUiJson(buildComfyUiUrl(baseUrl, 'queue'), 'poll')
+export async function cancelComfyUiTask(
+  baseUrl: string,
+  promptId: string,
+  authHeaders: ComfyUiAuthHeaders = {},
+): Promise<void> {
+  const queuePayload = await fetchComfyUiJson(buildComfyUiUrl(baseUrl, 'queue'), 'poll', authHeaders)
   const phase = readQueuePhase(queuePayload, promptId)
   if (!phase) {
     comfyUiLogger.info({
@@ -222,10 +238,13 @@ export async function cancelComfyUiTask(baseUrl: string, promptId: string): Prom
   const response = phase === 'QUEUED'
     ? await fetchWithProviderProxy(buildComfyUiUrl(baseUrl, 'queue'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify({ delete: [promptId] }),
     })
-    : await fetchWithProviderProxy(buildComfyUiUrl(baseUrl, 'interrupt'), { method: 'POST' })
+    : await fetchWithProviderProxy(buildComfyUiUrl(baseUrl, 'interrupt'), {
+      method: 'POST',
+      headers: { ...authHeaders },
+    })
   if (!response.ok && response.status >= 500) {
     throw await captureProviderHttpFailure({ response, provider: 'comfyui', phase: 'cancel' })
   }

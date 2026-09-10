@@ -83,7 +83,11 @@ export async function getUserApiConfig(userId: string) {
     id: provider.id,
     name: provider.name,
     baseUrl: provider.baseUrl,
+    // Credential readiness: for key-less providers this is true once the
+    // entry exists, so it drives availability, not key presence.
     hasApiKey: hasStoredProviderCredential(provider),
+    // Literal key presence, for UI that talks specifically about the key.
+    hasStoredApiKey: typeof provider.apiKey === 'string' && provider.apiKey.trim().length > 0,
   }))
 
   const billingMode = await getBillingMode()

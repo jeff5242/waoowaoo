@@ -1,7 +1,7 @@
 import { createScopedLogger } from '@/lib/logging/core'
 import { requireSelectedModelId } from '@/lib/ai-providers/shared/model-selection'
 import type { AiProviderImageExecutionContext, GenerateResult } from '@/lib/ai-providers/runtime-types'
-import { resolveComfyUiBaseUrl } from './config'
+import { buildComfyUiAuthHeaders, resolveComfyUiBaseUrl } from './config'
 import { submitComfyUiPrompt } from './submission'
 import { buildComfyUiTextToImageGraph, COMFYUI_TEXT_TO_IMAGE_MODEL_ID } from './workflows'
 
@@ -36,6 +36,7 @@ export async function executeComfyUiImageGeneration(
     baseUrl,
     graph,
     scope: 'comfyui:image:submit',
+    authHeaders: buildComfyUiAuthHeaders(input.providerConfig.apiKey),
   })
 
   return {

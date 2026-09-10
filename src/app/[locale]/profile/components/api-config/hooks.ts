@@ -153,7 +153,9 @@ export function useProviders(): UseProvidersReturn {
         const previousProvider = latestProvidersRef.current.find((provider) => provider.id === providerId)
         if (!previousProvider) return
         const next = latestProvidersRef.current.map((provider) => (
-            provider.id === providerId ? { ...provider, apiKey, hasApiKey: Boolean(apiKey) } : provider
+            provider.id === providerId
+                ? { ...provider, apiKey, hasApiKey: Boolean(apiKey), hasStoredApiKey: Boolean(apiKey) }
+                : provider
         ))
         latestProvidersRef.current = next
         setProviders(next)
@@ -161,7 +163,7 @@ export function useProviders(): UseProvidersReturn {
             const settled = latestProvidersRef.current.map((provider) => {
                 if (provider.id !== providerId) return provider
                 if (!saved) return previousProvider
-                return { ...provider, apiKey: undefined, hasApiKey: Boolean(apiKey) }
+                return { ...provider, apiKey: undefined, hasApiKey: Boolean(apiKey), hasStoredApiKey: Boolean(apiKey) }
             })
             latestProvidersRef.current = settled
             setProviders(settled)

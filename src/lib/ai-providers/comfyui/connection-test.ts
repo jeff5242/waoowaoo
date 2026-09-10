@@ -5,7 +5,7 @@ import type {
   AiProviderConnectionTester,
   AiProviderConnectionTestStep,
 } from '@/lib/ai-providers/runtime-types'
-import { buildComfyUiUrl, resolveComfyUiBaseUrl } from './config'
+import { buildComfyUiAuthHeaders, buildComfyUiUrl, resolveComfyUiBaseUrl } from './config'
 import { comfyUiFailureAdapter } from './failure'
 
 export const comfyUiConnectionTester: AiProviderConnectionTester = {
@@ -15,7 +15,7 @@ export const comfyUiConnectionTester: AiProviderConnectionTester = {
     try {
       const response = await fetchWithProviderProxy(buildComfyUiUrl(baseUrl, 'system_stats'), {
         method: 'GET',
-        headers: { Accept: 'application/json' },
+        headers: { Accept: 'application/json', ...buildComfyUiAuthHeaders(input.apiKey) },
       })
       if (!response.ok) {
         const failure = await captureProviderHttpFailure({

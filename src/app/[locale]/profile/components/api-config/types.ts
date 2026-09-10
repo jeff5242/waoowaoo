@@ -40,6 +40,7 @@ export interface Provider {
     baseUrl?: string
     apiKey?: string
     hasApiKey?: boolean
+    hasStoredApiKey?: boolean
     featured?: boolean
     connectionTest?: boolean
     requiresApiKey?: boolean

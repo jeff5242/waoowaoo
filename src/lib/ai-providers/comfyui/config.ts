@@ -15,3 +15,18 @@ export function resolveComfyUiBaseUrl(configuredBaseUrl?: string): string {
 export function buildComfyUiUrl(baseUrl: string, path: string): string {
   return `${normalizeBaseUrl(baseUrl)}/${path.replace(/^\/+/, '')}`
 }
+
+/**
+ * ComfyUI itself has no auth; operators protect it with a reverse proxy.
+ * The optional API key field maps onto that proxy's scheme: a `user:password`
+ * value becomes HTTP Basic credentials, anything else is sent as a Bearer
+ * token. An empty key sends no Authorization header.
+ */
+export function buildComfyUiAuthHeaders(apiKey?: string): Record<string, string> {
+  const trimmed = apiKey?.trim()
+  if (!trimmed) return {}
+  if (trimmed.includes(':')) {
+    return { Authorization: `Basic ${Buffer.from(trimmed, 'utf8').toString('base64')}` }
+  }
+  return { Authorization: `Bearer ${trimmed}` }
+}

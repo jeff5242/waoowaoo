@@ -47,6 +47,7 @@ export function mergeProvidersForDisplay(
       merged.push({
         ...matchedPreset,
         hasApiKey: savedProvider.hasApiKey === true,
+        hasStoredApiKey: savedProvider.hasStoredApiKey === true,
         baseUrl: savedProvider.baseUrl || matchedPreset.baseUrl,
       })
       seenPresetKeys.add(providerKey)
