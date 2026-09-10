@@ -307,9 +307,14 @@ export function buildAssistantRuntimeTurnContext(
   if (!normalized || normalized.length > 64) {
     throw new Error('ASSISTANT_RUNTIME_LOCALE_INVALID')
   }
+  // This fork localizes the zh UI to Traditional Chinese (Taiwan); project the
+  // injected working language so generated text matches the interface.
+  const projectedLocale = normalized === 'zh' || normalized.startsWith('zh-')
+    ? 'zh-TW (Traditional Chinese, Taiwan vocabulary)'
+    : normalized
   return [
     '<wao_turn_context>',
-    `locale: ${JSON.stringify(normalized)}`,
+    `locale: ${JSON.stringify(projectedLocale)}`,
     'Write every user-visible response, progress update, plan explanation, and reasoning summary in this locale unless the user explicitly requests another language.',
     'Use this same working language for every user-visible project folder, document, and Resource name unless the user explicitly requests another language.',
     '<wao_project_production_context>',

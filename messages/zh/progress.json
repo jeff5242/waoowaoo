@@ -1,57 +1,57 @@
 {
   "status": {
     "completed": "已完成",
-    "failed": "失败",
-    "processing": "进行中",
-    "queued": "排队中",
-    "pending": "未开始"
+    "failed": "失敗",
+    "processing": "進行中",
+    "queued": "排隊中",
+    "pending": "未開始"
   },
   "runtime": {
-    "waitingExecution": "等待执行",
-    "taskCreated": "任务已创建",
-    "taskStarted": "任务开始处理",
-    "taskCompleted": "任务已完成",
-    "taskFailed": "任务失败",
-    "taskProcessing": "任务处理中...",
+    "waitingExecution": "等待執行",
+    "taskCreated": "任務已建立",
+    "taskStarted": "任務開始處理",
+    "taskCompleted": "任務已完成",
+    "taskFailed": "任務失敗",
+    "taskProcessing": "任務處理中...",
     "llm": {
-      "processing": "模型处理中...",
-      "output": "模型正在输出...",
+      "processing": "模型處理中...",
+      "output": "模型正在輸出...",
       "reasoning": "模型正在推理...",
-      "completed": "模型输出完成",
-      "failed": "模型输出失败"
+      "completed": "模型輸出完成",
+      "failed": "模型輸出失敗"
     },
     "stage": {
-      "llmSubmit": "模型请求提交中",
-      "llmStreaming": "模型流式输出中",
-      "llmFallbackNonStream": "模型降级为非流式模式",
-      "llmCompleted": "模型输出完成",
-      "llmFailed": "模型输出失败"
+      "llmSubmit": "模型請求提交中",
+      "llmStreaming": "模型流式輸出中",
+      "llmFallbackNonStream": "模型降級為非流式模式",
+      "llmCompleted": "模型輸出完成",
+      "llmFailed": "模型輸出失敗"
     }
   },
   "taskType": {
-    "creativeWork": "专业创作",
-    "workspaceResourceImage": "图片资源生成",
-    "workspaceResourceAudio": "音频资源生成",
-    "workspaceResourceVoice": "音色资源生成",
-    "workspaceResourceVideo": "视频资源生成",
-    "workspaceResourceVideoMerge": "视频资源合并",
-    "generic": "任务"
+    "creativeWork": "專業創作",
+    "workspaceResourceImage": "圖片資源生成",
+    "workspaceResourceAudio": "音訊資源生成",
+    "workspaceResourceVoice": "音色資源生成",
+    "workspaceResourceVideo": "影片資源生成",
+    "workspaceResourceVideoMerge": "影片資源合併",
+    "generic": "任務"
   },
   "stage": {
-    "received": "任务已接收",
-    "creativeWorkPrepare": "准备创作上下文",
-    "creativeWorkReasoning": "创作资源内容",
-    "creativeWorkFinalize": "保存创作结果",
-    "workspaceResourcePrepare": "准备资源生成",
-    "workspaceResourceGenerate": "生成资源",
-    "workspaceResourcePersist": "保存资源",
-    "generateVoiceSubmit": "提交音色生成任务",
-    "persistVoice": "保存音色资源",
-    "pollingExternal": "等待外部服务",
-    "retrying": "正在重试任务",
-    "enqueueFailed": "任务入队失败",
-    "taskReconciled": "队列对账后终止任务",
-    "taskTimeout": "任务心跳超时后终止",
-    "llmProxyPersist": "保存模型结果"
+    "received": "任務已接收",
+    "creativeWorkPrepare": "準備創作上下文",
+    "creativeWorkReasoning": "創作資源內容",
+    "creativeWorkFinalize": "儲存創作結果",
+    "workspaceResourcePrepare": "準備資源生成",
+    "workspaceResourceGenerate": "生成資源",
+    "workspaceResourcePersist": "儲存資源",
+    "generateVoiceSubmit": "提交音色生成任務",
+    "persistVoice": "儲存音色資源",
+    "pollingExternal": "等待外部服務",
+    "retrying": "正在重試任務",
+    "enqueueFailed": "任務入隊失敗",
+    "taskReconciled": "佇列對帳後終止任務",
+    "taskTimeout": "任務心跳超時後終止",
+    "llmProxyPersist": "儲存模型結果"
   }
 }

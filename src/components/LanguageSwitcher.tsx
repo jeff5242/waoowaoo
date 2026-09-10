@@ -8,18 +8,18 @@ import { AppIcon } from '@/components/ui/icons'
 import { usePathname, useRouter } from '@/i18n/navigation'
 
 const LANGUAGE_LABELS: Record<Locale, string> = {
-    zh: '简体中文',
+    zh: '繁體中文',
     en: 'English',
 }
 
 const SWITCH_CONFIRM_COPY: Record<Locale, { title: string; message: string; action: string; cancel: string; triggerLabel: string }> = {
     zh: {
-        title: '切换语言？',
+        title: '切換語言？',
         message:
-            '切换到 {targetLanguage} 后，不仅界面文字会改变，整条流程的提示词模板、剧本生成和任务输出语言也会同步切换。是否继续？',
-        action: '确认切换',
+            '切換到 {targetLanguage} 後，不僅介面文字會改變，整條流程的提示詞模板、劇本生成和任務輸出語言也會同步切換。是否繼續？',
+        action: '確認切換',
         cancel: '取消',
-        triggerLabel: '切换语言',
+        triggerLabel: '切換語言',
     },
     en: {
         title: 'Switch language?',

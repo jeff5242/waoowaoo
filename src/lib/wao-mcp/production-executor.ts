@@ -182,11 +182,11 @@ const EXECUTOR_COPY: Record<
   Record<ExecutorCopyKey, string>
 > = {
   zh: {
-    declined: '操作已取消，未执行任何生产任务。',
-    approvedSubmitted: '已提交获批的 Wao 操作。',
+    declined: '操作已取消，未執行任何生產任務。',
+    approvedSubmitted: '已提交獲批的 Wao 操作。',
     submitted: '已提交 Wao 操作。',
     completed: 'Wao 操作已完成。',
-    notAvailable: '此操作不能通过 Wao MCP 使用。',
+    notAvailable: '此操作不能透過 Wao MCP 使用。',
   },
   en: {
     declined: 'The operation was cancelled and no production task was executed.',

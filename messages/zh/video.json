@@ -1,13 +1,13 @@
 {
   "capability": {
     "generationMode": "生成模式",
-    "duration": "时长",
-    "resolution": "分辨率",
-    "quality": "图片质量",
-    "aspectRatio": "画幅比例",
+    "duration": "時長",
+    "resolution": "解析度",
+    "quality": "圖片品質",
+    "aspectRatio": "畫幅比例",
     "reasoningEffort": "Reasoning effort",
-    "rate": "语速",
+    "rate": "語速",
     "mode": "模式",
-    "generateAudio": "生成音频"
+    "generateAudio": "生成音訊"
   }
 }
